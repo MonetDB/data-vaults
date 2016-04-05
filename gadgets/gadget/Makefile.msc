@@ -1,0 +1,55 @@
+
+## Use: nmake -f makefile.msc install
+
+# Nothing much configurable below
+
+TOPDIR = .\..\..\..\..\..
+srcdir = $(TOPDIR)\..\sql\backends\monet5\vaults\gadget
+!INCLUDE $(TOPDIR)\..\NT\rules.msc
+all: all-msc
+check: check-msc
+install: install-msc
+INCLUDES = -I$(srcdir) "-I.." -I$(srcdir)\..\ "-I..\..\" -I$(srcdir)\..\..\ "-I..\..\..\..\include" -I$(srcdir)\..\..\..\..\include "-I..\..\..\..\common" -I$(srcdir)\..\..\..\..\common "-I..\..\..\..\storage" -I$(srcdir)\..\..\..\..\storage "-I..\..\..\..\server" -I$(srcdir)\..\..\..\..\server "-I..\..\..\..\..\monetdb5\modules\atoms" -I$(srcdir)\..\..\..\..\..\monetdb5\modules\atoms "-I..\..\..\..\..\monetdb5\modules\kernel" -I$(srcdir)\..\..\..\..\..\monetdb5\modules\kernel "-I..\..\..\..\..\monetdb5\mal" -I$(srcdir)\..\..\..\..\..\monetdb5\mal "-I..\..\..\..\..\monetdb5\modules\mal" -I$(srcdir)\..\..\..\..\..\monetdb5\modules\mal "-I..\..\..\..\..\monetdb5\optimizer" -I$(srcdir)\..\..\..\..\..\monetdb5\optimizer "-I..\..\..\..\..\monetdb5\scheduler" -I$(srcdir)\..\..\..\..\..\monetdb5\scheduler "-I..\..\..\..\..\clients\mapilib" -I$(srcdir)\..\..\..\..\..\clients\mapilib "-I..\..\..\..\..\common\options" -I$(srcdir)\..\..\..\..\..\common\options "-I..\..\..\..\..\common\stream" -I$(srcdir)\..\..\..\..\..\common\stream "-I..\..\..\..\..\common\utils" -I$(srcdir)\..\..\..\..\..\common\utils "-I..\..\..\..\..\gdk" -I$(srcdir)\..\..\..\..\..\gdk $(READLINE_INCS)
+82_gadget.sql: "$(srcdir)\82_gadget.sql"
+	$(INSTALL) "$(srcdir)\82_gadget.sql" "82_gadget.sql"
+82_gadget.mal: "$(srcdir)\82_gadget.mal"
+	$(INSTALL) "$(srcdir)\82_gadget.mal" "82_gadget.mal"
+gadget.mal: "$(srcdir)\gadget.mal"
+	$(INSTALL) "$(srcdir)\gadget.mal" "gadget.mal"
+lib_gadget.dll:  ..\..\..\..\..\monetdb5\tools\libmonetdb5.lib
+lib_gadget_LIBS = ..\..\..\..\..\monetdb5\tools\libmonetdb5.lib
+lib_gadget_OBJS = gadget.obj
+lib_gadget_DEPS = $(lib_gadget_OBJS)
+lib_gadget.lib: lib_gadget.dll
+lib_gadget.dll: $(lib_gadget_DEPS) 
+	python "$(TOPDIR)\..\NT\wincompile.py" $(CC) $(CFLAGS) -LD -Felib_gadget.dll @<< /link @<<
+$(lib_gadget_OBJS)
+<<
+$(lib_gadget_LIBS)
+<<
+	if exist $@.manifest $(MT) -manifest $@.manifest -outputresource:$@;2
+	if not exist .libs $(MKDIR) .libs
+	$(INSTALL) "lib_gadget.dll" ".libs\lib_gadget.dll"
+
+gadget.obj: "$(srcdir)\gadget.c" "$(srcdir)\gadget.h" "$(srcdir)\..\..\..\..\..\common\utils\mutils.h" "$(srcdir)\..\..\..\..\server\..\include\sql_mem.h" "$(srcdir)\..\..\..\..\server\..\..\gdk\gdk.h" "$(srcdir)\..\..\..\..\server\sql_scan.h" "$(srcdir)\..\..\..\..\server\..\include\sql_list.h" "$(srcdir)\..\..\..\..\server\..\..\common\stream\stream.h" "$(srcdir)\..\..\..\..\server\..\common\sql_types.h" "$(srcdir)\..\..\..\..\server\..\common\sql_backend.h" "$(srcdir)\..\..\..\..\server\..\include\sql_catalog.h" "$(srcdir)\..\..\..\..\server\..\include\sql_relation.h" "$(srcdir)\..\..\..\..\server\..\storage\sql_storage.h" "$(srcdir)\..\..\..\..\server\..\include\sql_keyword.h" "$(srcdir)\..\..\..\..\server\sql_atom.h" "$(srcdir)\..\..\..\..\server\..\..\clients\mapilib\mapi.h" "$(srcdir)\..\..\..\..\server\sql_mvc.h" "$(srcdir)\..\..\sql_scenario.h" "$(srcdir)\..\..\sql.h" "$(srcdir)\..\..\..\..\..\monetdb5\modules\mal\clients.h" "$(srcdir)\..\..\..\..\..\monetdb5\mal\mal_instruction.h" "$(srcdir)\..\..\..\..\..\monetdb5\mal\mal_type.h" "$(srcdir)\..\..\..\..\..\monetdb5\mal\mal.h" "$(srcdir)\..\..\..\..\..\monetdb5\mal\..\..\gdk\gdk.h" "$(srcdir)\..\..\..\..\..\monetdb5\mal\mal_stack.h" "$(srcdir)\..\..\..\..\..\monetdb5\mal\mal_namespace.h" "$(srcdir)\..\..\..\..\..\monetdb5\mal\mal_errors.h" "$(srcdir)\..\..\..\..\..\monetdb5\mal\mal_exception.h"
+	$(CC) $(CFLAGS) $(gadget_CFLAGS) $(GENDLL) -D_CRT_SECURE_NO_WARNINGS -DLIBGADGET -Fo"gadget.obj" -c "$(srcdir)\gadget.c"
+all-msc: "lib_gadget.dll" "82_gadget.sql" "82_gadget.mal" "gadget.mal"
+check-msc: all-msc "lib_gadget.dll" "82_gadget.mal" "gadget.mal" "82_gadget.sql"
+install-msc: install-exec install-data
+install-exec:  "install_lib_gadget" "install_82_gadget.mal" "install_gadget.mal" "install_82_gadget.sql" 
+install_lib_gadget: "lib_gadget.dll" "$(libdir)\monetdb5"
+	$(INSTALL) "lib_gadget.dll" "$(libdir)\monetdb5\lib_gadget.dll"
+	$(INSTALL) "lib_gadget.lib" "$(libdir)\monetdb5\lib_gadget.lib"
+install_82_gadget.mal: "82_gadget.mal" "$(libdir)\monetdb5\autoload"
+	$(INSTALL) "82_gadget.mal" "$(libdir)\monetdb5\autoload\82_gadget.mal"
+install_gadget.mal: "gadget.mal" "$(libdir)\monetdb5"
+	$(INSTALL) "gadget.mal" "$(libdir)\monetdb5\gadget.mal"
+install_82_gadget.sql: "82_gadget.sql" "$(libdir)\monetdb5\createdb"
+	$(INSTALL) "82_gadget.sql" "$(libdir)\monetdb5\createdb\82_gadget.sql"
+"$(libdir)\monetdb5":
+	if not exist "$(libdir)\monetdb5" $(MKDIR) "$(libdir)\monetdb5"
+"$(libdir)\monetdb5\autoload":
+	if not exist "$(libdir)\monetdb5\autoload" $(MKDIR) "$(libdir)\monetdb5\autoload"
+"$(libdir)\monetdb5\createdb":
+	if not exist "$(libdir)\monetdb5\createdb" $(MKDIR) "$(libdir)\monetdb5\createdb"
+install-data:
